@@ -791,12 +791,13 @@
       src.connect(f); f.connect(g); g.connect(actx.destination);
       src.start();
     }
+    // each level (company) has its own waveform + pitch register
     const sfx = {
-      shoot: () => tone(720, 0.12, 'square', 0.09, 180),
-      token: () => { tone(523, 0.09, 'sine', 0.16); setTimeout(() => tone(784, 0.12, 'sine', 0.16), 70); },
-      boom: () => { noise(0.25, 0.2); tone(150, 0.22, 'sawtooth', 0.12, 60); },
-      hit: () => tone(220, 0.3, 'sawtooth', 0.18, 70),
-      over: () => { tone(440, 0.18, 'square', 0.16, 330); setTimeout(() => tone(294, 0.42, 'square', 0.16, 110), 160); },
+      shoot: () => { const a = LEVELS[level]; tone(720 * a.pitch, 0.12, a.wave, 0.09, 180 * a.pitch); },
+      token: () => { const a = LEVELS[level]; tone(523 * a.pitch, 0.09, 'sine', 0.16); setTimeout(() => tone(784 * a.pitch, 0.12, 'sine', 0.16), 70); },
+      boom: () => { const a = LEVELS[level]; noise(0.25, 0.2); tone(150 * a.pitch, 0.22, 'sawtooth', 0.12, 60 * a.pitch); },
+      hit: () => { const a = LEVELS[level]; tone(220 * a.pitch, 0.3, a.wave, 0.18, 70 * a.pitch); },
+      over: () => { const a = LEVELS[level]; tone(440 * a.pitch, 0.18, a.wave, 0.16, 330 * a.pitch); setTimeout(() => tone(294 * a.pitch, 0.42, a.wave, 0.16, 110 * a.pitch), 160); },
     };
     els.mute.addEventListener('click', () => {
       muted = !muted; localStorage.setItem('arcadeMuted', muted ? '1' : '0');
@@ -824,9 +825,9 @@
 
     // each level is a company from the real career path: mobile -> cloud -> AI
     const LEVELS = [
-      { name: 'ABAS Ibérica', sub: 'Mobile apps · 2022', at: 0,   grid: 0x29c8f5, glow: 0x4be0ff, fog: 0x04080f },
-      { name: 'DOBCO',        sub: 'Cloud platform · 2023', at: 170, grid: 0x6f7bf7, glow: 0x9aa6ff, fog: 0x070617 },
-      { name: 'Atender',      sub: 'AI platform · 2025', at: 430, grid: 0xb564ec, glow: 0xC084FC, fog: 0x0c0718 },
+      { name: 'ABAS Ibérica', sub: 'Mobile apps · 2022', at: 0,   grid: 0x29c8f5, glow: 0x4be0ff, fog: 0x04080f, wave: 'square',   pitch: 1.18 },
+      { name: 'DOBCO',        sub: 'Cloud platform · 2023', at: 170, grid: 0x6f7bf7, glow: 0x9aa6ff, fog: 0x070617, wave: 'triangle', pitch: 1.00 },
+      { name: 'Atender',      sub: 'AI platform · 2025', at: 430, grid: 0xb564ec, glow: 0xC084FC, fog: 0x0c0718, wave: 'sawtooth', pitch: 0.84 },
     ];
 
     function loadThree() {
@@ -902,7 +903,7 @@
       els.level.innerHTML = '<span>LEVEL ' + (level + 1) + '</span>' + L.name + '<small>' + L.sub + '</small>';
       els.level.hidden = false;
       requestAnimationFrame(() => els.level.classList.add('show'));
-      tone(523, 0.1, 'sine', 0.14); setTimeout(() => tone(659, 0.12, 'sine', 0.14), 110); setTimeout(() => tone(880, 0.18, 'sine', 0.14), 240);
+      tone(523 * L.pitch, 0.1, L.wave, 0.14); setTimeout(() => tone(659 * L.pitch, 0.12, L.wave, 0.14), 110); setTimeout(() => tone(880 * L.pitch, 0.2, L.wave, 0.16), 240);
       clearTimeout(levelTimer);
       levelTimer = setTimeout(() => {
         els.level.classList.remove('show');
