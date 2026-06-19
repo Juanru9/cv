@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Juan Rubén García — Software Engineer</title>
+<meta name="description" content="Juan Rubén García — Software Engineer specializing in C#/.NET, Azure and AI platforms. Building cloud-based AI products from Málaga, Spain." />
+<meta name="author" content="Juan Rubén García" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Juan Rubén García — Software Engineer" />
+<meta property="og:description" content="Software Engineer specializing in C#/.NET, Azure and AI platforms. Building cloud-based AI products from Málaga, Spain." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230F172A'/%3E%3Ctext x='50' y='68' font-family='Inter,sans-serif' font-size='52' font-weight='700' fill='%23818CF8' text-anchor='middle'%3EJ%3C/text%3E%3C/svg%3E" />
+
+<style>
+  :root {
+    --bg:        #0B1120;
+    --surface:   #0F172A;
+    --surface-2: #131C30;
+    --muted:     #1B2640;
+    --border:    rgba(148, 163, 184, 0.14);
+    --border-strong: rgba(148, 163, 184, 0.28);
+    --fg:        #F8FAFC;
+    --fg-soft:   #CBD5E1;
+    --fg-muted:  #94A3B8;
+    --accent:    #818CF8;   /* indigo */
+    --accent-2:  #C084FC;   /* violet */
+    --accent-3:  #38BDF8;   /* sky */
+    --glow-green:#34D399;
+    --ring:      rgba(129, 140, 248, 0.55);
+    --shadow:    0 24px 60px -28px rgba(2, 6, 23, 0.9);
+    --r-sm: 10px; --r-md: 16px; --r-lg: 24px;
+    --maxw: 1120px;
+    --grad: linear-gradient(120deg, var(--accent-3), var(--accent), var(--accent-2));
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* ambient background layer */
+  .ambient { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.5; will-change: transform; }
+  .blob.b1 { width: 520px; height: 520px; background: #4338CA; top: -160px; left: -120px; animation: drift1 22s ease-in-out infinite; }
+  .blob.b2 { width: 460px; height: 460px; background: #7C3AED; top: 30%; right: -160px; animation: drift2 26s ease-in-out infinite; }
+  .blob.b3 { width: 400px; height: 400px; background: #0EA5E9; bottom: -180px; left: 30%; opacity: 0.35; animation: drift3 30s ease-in-out infinite; }
+  .grid-overlay {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(148,163,184,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148,163,184,0.05) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+  @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(60px,40px)} }
+  @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-50px,30px)} }
+  @keyframes drift3 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,-30px)} }
+
+  .wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: rgba(129,140,248,0.35); color: #fff; }
+
+  /* focus visibility */
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+
+  /* ---------- NAV ---------- */
+  header.nav {
+    position: sticky; top: 0; z-index: 100;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    background: rgba(11, 17, 32, 0.72);
+    border-bottom: 1px solid transparent;
+    transition: border-color .3s ease, background .3s ease;
+  }
+  header.nav.scrolled { border-bottom: 1px solid var(--border); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 68px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; }
+  .brand .logo {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    background: var(--surface-2); border: 1px solid var(--border-strong);
+    color: var(--accent); font-weight: 800; font-size: 16px;
+  }
+  .nav-links { display: flex; align-items: center; gap: 4px; }
+  .nav-links a {
+    color: var(--fg-muted); font-size: 14.5px; font-weight: 500; padding: 8px 14px; border-radius: 8px;
+    transition: color .2s ease, background .2s ease;
+  }
+  .nav-links a:hover { color: var(--fg); background: var(--muted); }
+  .nav-cta {
+    margin-left: 8px; color: var(--fg) !important; background: var(--muted);
+    border: 1px solid var(--border-strong); font-weight: 600 !important;
+  }
+  .nav-cta:hover { border-color: var(--accent); color: #fff !important; }
+  @media (max-width: 760px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+  /* ---------- BUTTONS ---------- */
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+    font-weight: 600; font-size: 15px; padding: 13px 22px; border-radius: 12px;
+    border: 1px solid transparent; transition: transform .15s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease;
+    line-height: 1;
+  }
+  .btn svg { width: 18px; height: 18px; }
+  .btn-primary {
+    color: #0B1120; background: var(--grad); background-size: 160% 160%;
+    box-shadow: 0 10px 30px -10px rgba(129,140,248,0.6);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -12px rgba(129,140,248,0.75); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-ghost { color: var(--fg); background: var(--surface-2); border-color: var(--border-strong); }
+  .btn-ghost:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .btn-ghost:active { transform: translateY(0); }
+
+  /* ---------- SECTIONS ---------- */
+  section { padding: 96px 0; position: relative; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12.5px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px;
+  }
+  .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--accent); opacity: .7; }
+  h2.title { font-size: clamp(28px, 4vw, 40px); font-weight: 700; letter-spacing: -0.02em; margin: 0 0 14px; }
+  .section-lead { color: var(--fg-muted); max-width: 560px; font-size: 17px; margin: 0 0 48px; }
+
+  /* ---------- HERO ---------- */
+  .hero { padding: 92px 0 80px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 7px 14px; border-radius: 999px; font-size: 13.5px; color: var(--fg-soft);
+    background: var(--surface-2); border: 1px solid var(--border); margin-bottom: 28px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--glow-green); box-shadow: 0 0 0 0 rgba(52,211,153,0.7); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(52,211,153,0.55)} 70%{box-shadow:0 0 0 9px rgba(52,211,153,0)} 100%{box-shadow:0 0 0 0 rgba(52,211,153,0)} }
+  .hero h1 {
+    font-size: clamp(42px, 7vw, 78px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 800; margin: 0 0 22px;
+  }
+  .hero h1 .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero-roles { font-family: 'JetBrains Mono', monospace; font-size: clamp(16px, 2.4vw, 22px); color: var(--fg-soft); margin: 0 0 22px; min-height: 1.4em; }
+  .hero-roles .type { color: var(--accent-2); font-weight: 500; }
+  .hero-roles .caret { display: inline-block; width: 2px; height: 1.05em; background: var(--accent); margin-left: 2px; vertical-align: text-bottom; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
+  .hero-desc { font-size: 18px; color: var(--fg-muted); max-width: 580px; margin: 0 0 36px; }
+  .hero-desc strong { color: var(--fg-soft); font-weight: 600; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 44px; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 26px; color: var(--fg-muted); font-size: 14.5px; }
+  .hero-meta span { display: inline-flex; align-items: center; gap: 8px; }
+  .hero-meta svg { width: 17px; height: 17px; color: var(--accent); }
+
+  /* ---------- STATS ---------- */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-top: 64px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 22px 24px; }
+  .stat .num { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .stat .lab { color: var(--fg-muted); font-size: 13.5px; margin-top: 4px; }
+  @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+  /* ---------- CARD shared ---------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);
+    transition: border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+  }
+  .card:hover { border-color: var(--border-strong); }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid { display: grid; grid-template-columns: 1.4fr 1fr; gap: 48px; align-items: start; }
+  @media (max-width: 880px) { .about-grid { grid-template-columns: 1fr; gap: 32px; } }
+  .about-grid p { color: var(--fg-soft); font-size: 17px; margin: 0 0 18px; }
+  .about-card { padding: 28px; }
+  .about-card h3 { margin: 0 0 18px; font-size: 15px; color: var(--fg-muted); font-weight: 500; font-family: 'JetBrains Mono', monospace; letter-spacing: .04em; }
+  .kv { display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-top: 1px solid var(--border); font-size: 15px; }
+  .kv:first-of-type { border-top: none; }
+  .kv .k { color: var(--fg-muted); }
+  .kv .v { color: var(--fg); font-weight: 500; text-align: right; }
+
+  /* ---------- SKILLS ---------- */
+  .skills-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 760px) { .skills-grid { grid-template-columns: 1fr; } }
+  .skill-card { padding: 26px; }
+  .skill-card .head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .skill-card .ico { width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; background: var(--muted); border: 1px solid var(--border); color: var(--accent); }
+  .skill-card .ico svg { width: 20px; height: 20px; }
+  .skill-card h3 { margin: 0; font-size: 17px; font-weight: 600; }
+  .tags { display: flex; flex-wrap: wrap; gap: 9px; }
+  .tag {
+    font-size: 13.5px; padding: 7px 13px; border-radius: 999px; color: var(--fg-soft);
+    background: var(--surface-2); border: 1px solid var(--border);
+    transition: color .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .tag:hover { color: var(--fg); border-color: var(--accent); transform: translateY(-1px); }
+
+  /* ---------- EXPERIENCE TIMELINE ---------- */
+  .timeline { position: relative; }
+  .tl-item { position: relative; padding: 0 0 14px 38px; }
+  .tl-item:not(:last-child) { padding-bottom: 28px; }
+  .tl-item::before { content: ""; position: absolute; left: 9px; top: 30px; bottom: -14px; width: 1px; background: var(--border); }
+  .tl-item:last-child::before { display: none; }
+  .tl-dot { position: absolute; left: 0; top: 6px; width: 19px; height: 19px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border-strong); display: grid; place-items: center; }
+  .tl-dot::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .tl-item.now .tl-dot { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(129,140,248,0.12); }
+  .exp-card { padding: 24px 26px; }
+  .exp-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
+  .exp-role { font-size: 18px; font-weight: 600; margin: 0; }
+  .exp-date { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--fg-muted); white-space: nowrap; }
+  .exp-co { color: var(--accent); font-weight: 500; font-size: 14.5px; margin-bottom: 12px; }
+  .exp-co .badge-now { color: var(--glow-green); font-size: 11.5px; font-family: 'JetBrains Mono', monospace; margin-left: 8px; border: 1px solid rgba(52,211,153,.3); padding: 2px 8px; border-radius: 999px; }
+  .exp-card p { color: var(--fg-soft); margin: 0 0 16px; font-size: 15.5px; }
+
+  /* ---------- EDUCATION ---------- */
+  .edu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 880px) { .edu-grid { grid-template-columns: 1fr; } }
+  .edu-card { padding: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .edu-card .yr { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--accent); }
+  .edu-card h3 { margin: 0; font-size: 16.5px; font-weight: 600; line-height: 1.35; }
+  .edu-card .school { color: var(--fg-muted); font-size: 14px; margin-top: auto; }
+
+  /* ---------- CONTACT ---------- */
+  .contact-card {
+    text-align: center; padding: 64px 32px; border-radius: var(--r-lg);
+    background: radial-gradient(120% 140% at 50% 0%, rgba(129,140,248,0.14), transparent 60%), var(--surface);
+    border: 1px solid var(--border-strong);
+  }
+  .contact-card h2 { font-size: clamp(30px, 5vw, 46px); font-weight: 800; letter-spacing: -0.03em; margin: 0 0 16px; }
+  .contact-card h2 .grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .contact-card p { color: var(--fg-muted); font-size: 18px; max-width: 480px; margin: 0 auto 34px; }
+  .contact-actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+
+  /* ---------- FOOTER ---------- */
+  footer { border-top: 1px solid var(--border); padding: 34px 0; }
+  .foot-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; color: var(--fg-muted); font-size: 14px; }
+  .foot-links { display: flex; gap: 18px; }
+  .foot-links a { transition: color .2s ease; }
+  .foot-links a:hover { color: var(--fg); }
+
+  /* ---------- reveal on scroll ---------- */
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(0.16,1,0.3,1), transform .7s cubic-bezier(0.16,1,0.3,1); }
+  .reveal.in { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<div class="ambient" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="grid-overlay"></div>
+</div>
+
+<!-- NAV -->
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a href="#top" class="brand" aria-label="Juan Rubén García — home">
+      <span class="logo">JR</span>
+      <span>Juan Rubén García</span>
+    </a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#experience">Experience</a>
+      <a href="#education">Education</a>
+      <a href="#contact" class="nav-cta">Get in touch</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-badge reveal">
+        <span class="dot" aria-hidden="true"></span>
+        Available for new opportunities
+      </div>
+      <h1 class="reveal">Hi, I'm Juan&nbsp;Rubén —<br /><span class="grad">I build cloud&#8209;based AI platforms.</span></h1>
+      <p class="hero-roles reveal" aria-live="off">&gt; <span class="type" id="typed"></span><span class="caret" aria-hidden="true"></span></p>
+      <p class="hero-desc reveal">
+        Software Engineer with a strong engineering foundation, specialized in
+        <strong>C# / .NET</strong>, <strong>Azure</strong> and modern JavaScript.
+        Currently building a cloud-based AI platform at Atender, while pursuing an
+        <strong>MSc in Software Engineering &amp; Artificial Intelligence</strong>.
+      </p>
+      <div class="hero-actions reveal">
+        <a href="#experience" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          View my work
+        </a>
+        <a href="Juan-Ruben-Garcia-CV.pdf" download class="btn btn-ghost">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          Download CV
+        </a>
+      </div>
+      <div class="hero-meta reveal">
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          Málaga, Spain
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+          jrubengarciaj@gmail.com
+        </span>
+        <span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"/></svg>
+          ES (native) · EN (professional)
+        </span>
+      </div>
+
+      <div class="stats">
+        <div class="stat reveal"><div class="num">3+</div><div class="lab">Years building software</div></div>
+        <div class="stat reveal"><div class="num">3</div><div class="lab">Cloud platforms shipped</div></div>
+        <div class="stat reveal"><div class="num">2</div><div class="lab">MSc degrees (1 in&nbsp;progress)</div></div>
+        <div class="stat reveal"><div class="num">∞</div><div class="lab">Curiosity for new tech</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="wrap">
+      <span class="eyebrow reveal">01 · About</span>
+      <h2 class="title reveal">Engineering mindset, software craft.</h2>
+      <div class="about-grid">
+        <div>
+          <p class="reveal">
+            I'm a Software Engineer who came to code through an industrial-engineering
+            background — which is exactly how I approach building products: analyze the
+            requirements, find the most viable solution, and ship it with documentation
+            and tests behind it.
+          </p>
+          <p class="reveal">
+            Over the last few years I've helped build three cloud platforms — from mobile
+            apps to a medical system, and now an <strong style="color:var(--fg)">AI platform</strong>
+            at Atender. I work daily across the .NET stack, Azure and modern front-ends
+            (Vue.js, React), and I'm deepening my expertise with an MSc in
+            Software Engineering &amp; AI.
+          </p>
+          <p class="reveal">
+            Committed, calm under unexpected problems, and at home in international teams —
+            I like giving the best of myself on every project I'm part of.
+          </p>
+        </div>
+        <div class="card about-card reveal">
+          <h3>// quick_facts</h3>
+          <div class="kv"><span class="k">Role</span><span class="v">Software Engineer</span></div>
+          <div class="kv"><span class="k">Currently</span><span class="v">Atender S.L.</span></div>
+          <div class="kv"><span class="k">Based in</span><span class="v">Málaga, Spain</span></div>
+          <div class="kv"><span class="k">Focus</span><span class="v">Cloud · AI · .NET</span></div>
+          <div class="kv"><span class="k">Studying</span><span class="v">MSc Software Eng. &amp; AI</span></div>
+          <div class="kv"><span class="k">Languages</span><span class="v">Spanish · English</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="wrap">
+      <span class="eyebrow reveal">02 · Skills</span>
+      <h2 class="title reveal">The stack I build with.</h2>
+      <p class="section-lead reveal">A backend-leaning, full-stack toolkit — strong on .NET and cloud, comfortable across modern JavaScript and data.</p>
+      <div class="skills-grid">
+        <div class="card skill-card reveal">
+          <div class="head">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></span>
+            <h3>Languages</h3>
+          </div>
+          <div class="tags">
+            <span class="tag">C#</span><span class="tag">JavaScript</span><span class="tag">TypeScript</span>
+            <span class="tag">Python</span><span class="tag">Java</span><span class="tag">SQL</span>
+          </div>
+        </div>
+        <div class="card skill-card reveal">
+          <div class="head">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg></span>
+            <h3>Frameworks</h3>
+          </div>
+          <div class="tags">
+            <span class="tag">.NET</span><span class="tag">ASP.NET</span><span class="tag">Vue.js</span>
+            <span class="tag">React</span><span class="tag">.NET MAUI</span><span class="tag">Xamarin</span>
+            <span class="tag">Node.js</span><span class="tag">Express</span>
+          </div>
+        </div>
+        <div class="card skill-card reveal">
+          <div class="head">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19a4.5 4.5 0 0 0 .5-9 7 7 0 0 0-13.4 1.5A4 4 0 0 0 6 19Z"/><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v6c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
+            <h3>Cloud &amp; Data</h3>
+          </div>
+          <div class="tags">
+            <span class="tag">Azure</span><span class="tag">Entity Framework</span><span class="tag">SQL Server</span>
+            <span class="tag">MySQL</span><span class="tag">MongoDB</span><span class="tag">REST APIs</span>
+          </div>
+        </div>
+        <div class="card skill-card reveal">
+          <div class="head">
+            <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z"/></svg></span>
+            <h3>Practices &amp; Tools</h3>
+          </div>
+          <div class="tags">
+            <span class="tag">Git</span><span class="tag">Agile</span><span class="tag">TDD / BDD</span>
+            <span class="tag">Postman</span><span class="tag">Selenium</span><span class="tag">JMeter</span>
+            <span class="tag">QA Automation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section id="experience">
+    <div class="wrap">
+      <span class="eyebrow reveal">03 · Experience</span>
+      <h2 class="title reveal">Where I've shipped.</h2>
+      <p class="section-lead reveal">Three companies, three cloud platforms — moving steadily from mobile apps toward AI.</p>
+      <div class="timeline">
+
+        <div class="tl-item now reveal">
+          <span class="tl-dot" aria-hidden="true"></span>
+          <div class="card exp-card">
+            <div class="exp-top">
+              <h3 class="exp-role">Software Engineer</h3>
+              <span class="exp-date">Apr 2025 — Present</span>
+            </div>
+            <div class="exp-co">Atender S.L.<span class="badge-now">CURRENT</span></div>
+            <p>Building a cloud-based AI platform end-to-end, working across the backend and front-end with a focus on scalable, maintainable architecture.</p>
+            <div class="tags">
+              <span class="tag">C#</span><span class="tag">.NET</span><span class="tag">Azure</span>
+              <span class="tag">Entity Framework</span><span class="tag">Vue.js</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-item reveal">
+          <span class="tl-dot" aria-hidden="true"></span>
+          <div class="card exp-card">
+            <div class="exp-top">
+              <h3 class="exp-role">Software Engineer</h3>
+              <span class="exp-date">Oct 2023 — Apr 2025</span>
+            </div>
+            <div class="exp-co">DOBCO</div>
+            <p>Developed a cloud-based medical platform, delivering robust backend services and typed front-end features for a regulated healthcare domain.</p>
+            <div class="tags">
+              <span class="tag">C#</span><span class="tag">.NET</span><span class="tag">SQL</span>
+              <span class="tag">Entity Framework</span><span class="tag">TypeScript</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="tl-item reveal">
+          <span class="tl-dot" aria-hidden="true"></span>
+          <div class="card exp-card">
+            <div class="exp-top">
+              <h3 class="exp-role">Software Analyst</h3>
+              <span class="exp-date">Jul 2022 — Oct 2023</span>
+            </div>
+            <div class="exp-co">ABAS Ibérica S.L.</div>
+            <p>Built iOS and Android applications and REST APIs, analyzing requirements and turning them into cross-platform mobile and web features.</p>
+            <div class="tags">
+              <span class="tag">C#</span><span class="tag">.NET</span><span class="tag">.NET MAUI</span>
+              <span class="tag">Xamarin</span><span class="tag">ASP.NET</span><span class="tag">React</span><span class="tag">Postman</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- EDUCATION -->
+  <section id="education">
+    <div class="wrap">
+      <span class="eyebrow reveal">04 · Education &amp; Training</span>
+      <h2 class="title reveal">Always learning.</h2>
+      <p class="section-lead reveal">A multidisciplinary path — from industrial engineering to software and AI.</p>
+      <div class="edu-grid">
+        <div class="card edu-card reveal">
+          <span class="yr">2024 — Present</span>
+          <h3>MSc in Software Engineering &amp; Artificial Intelligence</h3>
+          <span class="school">University of Málaga</span>
+        </div>
+        <div class="card edu-card reveal">
+          <span class="yr">2020 — 2022</span>
+          <h3>MSc in Industrial Engineering</h3>
+          <span class="school">University of Málaga</span>
+        </div>
+        <div class="card edu-card reveal">
+          <span class="yr">2014 — 2020</span>
+          <h3>BSc in Industrial Technology Engineering</h3>
+          <span class="school">University of Málaga</span>
+        </div>
+      </div>
+
+      <div class="card edu-card reveal" style="margin-top:18px;">
+        <span class="yr">2022 · inTalent Program — LUCATIC S.L.</span>
+        <h3>Java &amp; QA Automation — 280 hours</h3>
+        <span class="school" style="margin-top:6px;">Agile, TDD/BDD &amp; GitHub · Java SE, MySQL, MongoDB · JavaScript, AJAX, Node.js &amp; Express · Cucumber, Selenium, REST Assured, Serenity, Postman &amp; JMeter</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="wrap">
+      <div class="contact-card reveal">
+        <span class="eyebrow" style="justify-content:center;">05 · Contact</span>
+        <h2>Let's build something <span class="grad">intelligent</span>.</h2>
+        <p>Open to new opportunities and interesting problems. The fastest way to reach me is by email.</p>
+        <div class="contact-actions">
+          <a href="mailto:jrubengarciaj@gmail.com" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg>
+            Email me
+          </a>
+          <a href="#contact" class="btn btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"/></svg>
+            Call me
+          </a>
+          <a href="Juan-Ruben-Garcia-CV.pdf" download class="btn btn-ghost">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            Download CV
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot-inner">
+    <span>© <span id="year"></span> Juan Rubén García · Built with care in Málaga</span>
+    <div class="foot-links">
+      <a href="mailto:jrubengarciaj@gmail.com">Email</a>
+      <a href="Juan-Ruben-Garcia-CV.pdf" download>CV</a>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // nav border on scroll
+  const nav = document.getElementById('nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 8);
+  onScroll();
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // reveal on scroll
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reveals = document.querySelectorAll('.reveal');
+  if (reduce || !('IntersectionObserver' in window)) {
+    reveals.forEach(el => el.classList.add('in'));
+  } else {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e, i) => {
+        if (e.isIntersecting) {
+          const el = e.target;
+          setTimeout(() => el.classList.add('in'), Math.min(i * 40, 160));
+          io.unobserve(el);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    reveals.forEach(el => io.observe(el));
+  }
+
+  // typing effect
+  (function () {
+    const target = document.getElementById('typed');
+    if (!target) return;
+    const phrases = [
+      'AI platform engineer',
+      'C# / .NET developer',
+      'Azure cloud builder',
+      'Full-stack problem solver',
+      'MSc in Software Eng. & AI'
+    ];
+    if (reduce) { target.textContent = phrases[0]; return; }
+    let pi = 0, ci = 0, deleting = false;
+    function tick() {
+      const word = phrases[pi];
+      ci += deleting ? -1 : 1;
+      target.textContent = word.slice(0, ci);
+      let delay = deleting ? 45 : 85;
+      if (!deleting && ci === word.length) { delay = 1600; deleting = true; }
+      else if (deleting && ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; delay = 350; }
+      setTimeout(tick, delay);
+    }
+    tick();
+  })();
+</script>
+</body>
+</html>
