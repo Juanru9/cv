@@ -279,7 +279,12 @@
     font: 600 12.5px/1 'JetBrains Mono', monospace; letter-spacing: .06em; color: var(--fg-soft);
   }
   .game-stat b { color: var(--fg); font-weight: 700; margin-left: 6px; }
-  .game-lives { display: flex; gap: 5px; }
+  .game-stage {
+    flex: 1; text-align: center; color: var(--accent); font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 12px var(--ring);
+  }
+  .game-lives { display: inline-flex; gap: 5px; margin-left: 10px; vertical-align: middle; }
   .game-lives span { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--ring); }
   .game-lives span.lost { background: transparent; border: 1px solid var(--border-strong); box-shadow: none; }
   .game-overlay {
@@ -296,6 +301,15 @@
     font: 800 clamp(54px, 12vw, 96px)/1 Inter, sans-serif; color: var(--fg);
     text-shadow: 0 0 26px var(--ring); pointer-events: none;
   }
+  .game-level {
+    position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 2px; pointer-events: none; text-align: center;
+    font: 800 clamp(26px, 5vw, 44px)/1.1 Inter, sans-serif; color: var(--fg);
+    text-shadow: 0 0 30px var(--accent); opacity: 0; transition: opacity .35s ease;
+  }
+  .game-level.show { opacity: 1; }
+  .game-level span { font-size: .5em; letter-spacing: .35em; color: var(--accent); font-weight: 700; }
+  .game-level small { font-size: .42em; letter-spacing: .12em; color: var(--fg-muted); font-weight: 500; margin-top: 4px; }
   .game-mute {
     position: absolute; top: 12px; right: 14px; z-index: 5; width: 34px; height: 34px;
     display: grid; place-items: center; border-radius: 9px; cursor: pointer;
@@ -580,8 +594,8 @@
         <canvas id="game-canvas"></canvas>
 
         <div class="game-hud" id="game-hud" hidden>
-          <div class="game-stat">SCORE <b id="game-score">0</b></div>
-          <div class="game-lives" id="game-lives" aria-label="Lives"></div>
+          <div class="game-stat">SCORE <b id="game-score">0</b><span class="game-lives" id="game-lives" aria-label="Lives"></span></div>
+          <div class="game-stage" id="game-stage"></div>
           <div class="game-stat">BEST <b id="game-best">0</b></div>
         </div>
 
@@ -601,6 +615,7 @@
           <button class="btn btn-primary game-play" id="game-restart" type="button">↻ Play again</button>
         </div>
 
+        <div class="game-level" id="game-level" hidden></div>
         <div class="game-count" id="game-count" hidden></div>
 
         <button class="game-fire" id="game-fire" type="button" aria-label="Fire" hidden>⦿</button>
@@ -736,6 +751,8 @@
       mute: document.getElementById('game-mute'),
       fire: document.getElementById('game-fire'),
       count: document.getElementById('game-count'),
+      stage: document.getElementById('game-stage'),
+      level: document.getElementById('game-level'),
     };
 
     const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
@@ -793,16 +810,24 @@
 
     let THREE, renderer, scene, camera, clock;
     let ready = false, loading = false, loopOn = false, inView = false, raf = 0;
-    let state = 'idle'; // idle | playing | over
-    let player, grid, stars;
+    let state = 'idle'; // idle | ready | playing | over
+    let player, stars, horizon, scrollers = [], GLOW_TEX = null;
     const tokens = [], bugs = [], bullets = [], debris = [];
     const BOUND = 2.6;
-    let score = 0, lives = 3, t = 0, spawnT = 0, shootCd = 0, countTimer = 0;
+    let score = 0, lives = 3, t = 0, spawnT = 0, shootCd = 0, countTimer = 0, levelTimer = 0;
+    let level = 0, levelGlow = 0x4be0ff;
     const input = { left: false, right: false, firing: false, targetX: null };
 
     const TECHS = ['C#', '.NET', 'Azure', 'AI', 'JS', 'SQL'];
     const COLORS = [0x818CF8, 0xC084FC, 0x38BDF8, 0x34D399];
     const BUG = 0xF45D6E;
+
+    // each level is a company from the real career path: mobile -> cloud -> AI
+    const LEVELS = [
+      { name: 'ABAS Ibérica', sub: 'Mobile apps · 2022', at: 0,   grid: 0x29c8f5, glow: 0x4be0ff, fog: 0x04080f },
+      { name: 'DOBCO',        sub: 'Cloud platform · 2023', at: 170, grid: 0x6f7bf7, glow: 0x9aa6ff, fog: 0x070617 },
+      { name: 'Atender',      sub: 'AI platform · 2025', at: 430, grid: 0xb564ec, glow: 0xC084FC, fog: 0x0c0718 },
+    ];
 
     function loadThree() {
       return new Promise((resolve) => {
@@ -840,35 +865,104 @@
       return spr;
     }
 
+    // --- Tron-style neon helpers ---
+    function glowSprite(color, size) {
+      if (!GLOW_TEX) {
+        const c = document.createElement('canvas'); c.width = c.height = 64;
+        const x = c.getContext('2d');
+        const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+        g.addColorStop(0, 'rgba(255,255,255,1)');
+        g.addColorStop(0.25, 'rgba(255,255,255,0.6)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+        GLOW_TEX = new THREE.CanvasTexture(c);
+      }
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: GLOW_TEX, color, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false,
+      }));
+      s.scale.set(size, size, 1);
+      return s;
+    }
+    function edges(geo, color) {
+      return new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color }));
+    }
+
+    function applyLevel(idx) {
+      level = idx;
+      const L = LEVELS[idx];
+      levelGlow = L.glow;
+      if (scene && scene.fog) scene.fog.color.setHex(L.fog);
+      for (const g of scrollers) g.material.color.setHex(L.grid);
+      if (horizon) horizon.material.color.setHex(L.glow);
+      if (player && player.userData.neon) player.userData.neon.forEach(m => m.color.setHex(L.glow));
+      els.stage.textContent = 'L' + (idx + 1) + ' · ' + L.name;
+    }
+    function showLevelBanner() {
+      const L = LEVELS[level];
+      els.level.innerHTML = '<span>LEVEL ' + (level + 1) + '</span>' + L.name + '<small>' + L.sub + '</small>';
+      els.level.hidden = false;
+      requestAnimationFrame(() => els.level.classList.add('show'));
+      tone(523, 0.1, 'sine', 0.14); setTimeout(() => tone(659, 0.12, 'sine', 0.14), 110); setTimeout(() => tone(880, 0.18, 'sine', 0.14), 240);
+      clearTimeout(levelTimer);
+      levelTimer = setTimeout(() => {
+        els.level.classList.remove('show');
+        setTimeout(() => { els.level.hidden = true; }, 360);
+      }, 1900);
+    }
+
     function buildScene() {
       renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       scene = new THREE.Scene();
-      scene.fog = new THREE.Fog(0x0B1120, 14, 46);
+      scene.fog = new THREE.Fog(LEVELS[0].fog, 16, 52);
       camera = new THREE.PerspectiveCamera(62, 16 / 9, 0.1, 120);
       camera.position.set(0, 0.7, 8);
       camera.lookAt(0, 0, -8);
       clock = new THREE.Clock();
 
-      scene.add(new THREE.AmbientLight(0x5b6b9c, 1.1));
-      const dir = new THREE.DirectionalLight(0xffffff, 0.7); dir.position.set(3, 6, 5); scene.add(dir);
+      scene.add(new THREE.AmbientLight(0x33406b, 0.9));
+      const dir = new THREE.DirectionalLight(0x8aa0ff, 0.5); dir.position.set(2, 5, 4); scene.add(dir);
+      const pl = new THREE.PointLight(0x49e0ff, 1.4, 22); pl.position.set(0, 1.4, 6.5); scene.add(pl);
 
-      grid = new THREE.GridHelper(60, 60, 0x3a4a7a, 0x1f2942);
-      grid.position.y = -1.3; scene.add(grid);
+      // Tron corridor: scrolling neon grids on floor, ceiling and side walls
+      scrollers = [];
+      const addGrid = (rotZ, px, py, opacity) => {
+        const g = new THREE.GridHelper(80, 80, LEVELS[0].grid, LEVELS[0].grid);
+        g.material.vertexColors = false;
+        g.material.transparent = true; g.material.opacity = opacity;
+        g.material.color.setHex(LEVELS[0].grid);
+        g.rotation.z = rotZ; g.position.set(px, py, 0);
+        scene.add(g); scrollers.push(g);
+      };
+      addGrid(0, 0, -1.35, 0.85);            // floor
+      addGrid(0, 0, 3.6, 0.30);              // ceiling
+      addGrid(Math.PI / 2, -3.6, 1.1, 0.40); // left wall
+      addGrid(Math.PI / 2, 3.6, 1.1, 0.40);  // right wall
 
+      // glowing horizon at the end of the corridor
+      horizon = glowSprite(LEVELS[0].glow, 1);
+      horizon.scale.set(28, 10, 1); horizon.position.set(0, 1.1, -50);
+      scene.add(horizon);
+
+      // starfield
       const sg = new THREE.BufferGeometry();
       const N = 320, pos = new Float32Array(N * 3);
       for (let i = 0; i < N; i++) { pos[i * 3] = (Math.random() - 0.5) * 40; pos[i * 3 + 1] = Math.random() * 16 - 2; pos[i * 3 + 2] = -Math.random() * 60; }
       sg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0x9fb0e0, size: 0.06, transparent: true, opacity: 0.85 }));
+      stars = new THREE.Points(sg, new THREE.PointsMaterial({ color: 0x9fb0e0, size: 0.05, transparent: true, opacity: 0.75 }));
       scene.add(stars);
 
+      // edge-lit light-jet
       player = new THREE.Group();
-      const body = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.95, 16),
-        new THREE.MeshStandardMaterial({ color: 0x818CF8, emissive: 0x4250c0, emissiveIntensity: 0.6, metalness: 0.3, roughness: 0.4 }));
-      body.rotation.x = -Math.PI / 2; player.add(body);
-      const glow = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 12), new THREE.MeshBasicMaterial({ color: 0x38BDF8 }));
-      glow.position.z = 0.5; player.add(glow);
+      const hullMat = new THREE.MeshStandardMaterial({ color: 0x0a1426, emissive: 0x14315c, emissiveIntensity: 0.6, metalness: 0.7, roughness: 0.3, flatShading: true });
+      const hullGeo = new THREE.ConeGeometry(0.3, 1.05, 6);
+      const hull = new THREE.Mesh(hullGeo, hullMat); hull.rotation.x = -Math.PI / 2;
+      const hullEdge = edges(hullGeo, levelGlow); hull.add(hullEdge); player.add(hull);
+      const wingGeo = new THREE.BoxGeometry(1.0, 0.05, 0.34);
+      const wing = new THREE.Mesh(wingGeo, hullMat); wing.position.z = 0.12;
+      const wingEdge = edges(wingGeo, levelGlow); wing.add(wingEdge); player.add(wing);
+      const eng = glowSprite(levelGlow, 0.7); eng.position.z = 0.66; player.add(eng);
+      player.userData.neon = [hullEdge.material, wingEdge.material, eng.material];
       player.position.set(0, 0, 5);
       scene.add(player);
 
@@ -886,19 +980,27 @@
 
     function spawnWave() {
       const x = (Math.random() * 2 - 1) * BOUND;
-      if (Math.random() < 0.62) {
+      if (Math.random() < 0.64 - level * 0.05) {
+        // feature: glowing hex crystal with a tech label
         const color = COLORS[Math.floor(Math.random() * COLORS.length)];
-        const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.34, 0),
-          new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.5, roughness: 0.3 }));
-        m.position.set(x, 0, -42);
+        const m = new THREE.Group();
+        const geo = new THREE.CylinderGeometry(0.3, 0.3, 0.16, 6);
+        const core = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.85, metalness: 0.5, roughness: 0.2 }));
+        core.rotation.x = Math.PI / 2; core.add(edges(geo, 0xffffff));
+        m.add(core); m.add(glowSprite(color, 1.5));
         const label = makeLabel(TECHS[Math.floor(Math.random() * TECHS.length)]);
-        label.position.y = 0.55; m.add(label);
+        label.position.y = 0.5; m.add(label);
+        m.position.set(x, 0, -42);
         scene.add(m); tokens.push(m);
       } else {
-        const m = new THREE.Mesh(new THREE.IcosahedronGeometry(0.4, 0),
-          new THREE.MeshStandardMaterial({ color: BUG, emissive: 0x7a1020, emissiveIntensity: 0.6, roughness: 0.5, flatShading: true }));
-        m.position.set(x, 0, -42);
+        // bug: red caged diamond
+        const m = new THREE.Group();
+        const geo = new THREE.OctahedronGeometry(0.42, 0);
+        const core = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0xff3b5c, emissive: 0xff1840, emissiveIntensity: 0.85, flatShading: true, metalness: 0.2, roughness: 0.5 }));
+        m.add(core); m.add(edges(new THREE.OctahedronGeometry(0.58, 0), 0xff8095));
+        m.add(glowSprite(0xff405e, 1.6));
         m.userData.spin = (Math.random() * 2 - 1) * 3;
+        m.position.set(x, 0, -42);
         scene.add(m); bugs.push(m);
       }
     }
@@ -906,7 +1008,8 @@
     function shoot() {
       if (state !== 'playing' || shootCd > 0) return;
       shootCd = 0.22;
-      const b = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), new THREE.MeshBasicMaterial({ color: 0x9fe8ff }));
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), new THREE.MeshBasicMaterial({ color: 0xbff3ff }));
+      b.add(glowSprite(levelGlow, 0.6));
       b.position.copy(player.position); b.position.z -= 0.5;
       scene.add(b); bullets.push(b);
       sfx.shoot();
@@ -925,7 +1028,7 @@
     function disposeMesh(m) {
       m.traverse(o => {
         if (o.geometry) o.geometry.dispose();
-        if (o.material) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); }
+        if (o.material) { if (o.material.map && o.material.map !== GLOW_TEX) o.material.map.dispose(); o.material.dispose(); }
       });
     }
     function clearObjects() {
@@ -947,8 +1050,8 @@
 
     function update(dt) {
       t += dt;
-      const speed = 11 + t * 0.28;
-      const interval = Math.max(0.46, 1.15 - t * 0.010);
+      const speed = 10.5 + level * 2.5 + t * 0.22;
+      const interval = Math.max(0.40, 1.15 - level * 0.12 - t * 0.008);
       shootCd -= dt;
 
       let vx = 0;
@@ -963,7 +1066,7 @@
       player.rotation.z = -vx * 0.3;
       if (input.firing) shoot();
 
-      grid.position.z = (grid.position.z + speed * dt) % 1;
+      for (const g of scrollers) g.position.z = (g.position.z + speed * dt) % 1;
       const sp = stars.geometry.attributes.position;
       for (let i = 0; i < sp.count; i++) { let z = sp.getZ(i) + speed * dt * 1.2; if (z > 9) z = -60; sp.setZ(i, z); }
       sp.needsUpdate = true;
@@ -1007,25 +1110,33 @@
         d.position.addScaledVector(d.userData.v, dt); d.rotation.x += dt * 5;
         if (d.userData.life <= 0) { scene.remove(d); disposeMesh(d); debris.splice(i, 1); }
       }
+
+      // advance level (each is a company) when the score threshold is crossed
+      while (level + 1 < LEVELS.length && score >= LEVELS[level + 1].at) {
+        applyLevel(level + 1);
+        showLevelBanner();
+      }
     }
 
     function frame() {
       raf = requestAnimationFrame(frame);
       const dt = Math.min(clock.getDelta(), 0.05);
       if (state === 'playing') update(dt);
-      else if (grid) grid.position.z = (grid.position.z + 4 * dt) % 1;
+      else for (const g of scrollers) g.position.z = (g.position.z + 4 * dt) % 1;
       renderer.render(scene, camera);
     }
     function startLoop() { if (loopOn || !ready) return; loopOn = true; clock.getDelta(); frame(); }
     function stopLoop() { loopOn = false; cancelAnimationFrame(raf); }
 
     function startGame() {
-      clearTimeout(countTimer);
+      clearTimeout(countTimer); clearTimeout(levelTimer);
       clearObjects();
       score = 0; lives = 3; t = 0; spawnT = 0.8; shootCd = 0;
       player.position.set(0, 0, 5); player.rotation.z = 0;
       input.left = input.right = input.firing = false; input.targetX = null;
       els.score.textContent = '0'; renderLives();
+      els.level.classList.remove('show'); els.level.hidden = true;
+      applyLevel(0);   // reset to level 1 (ABAS Ibérica) + its theme
       els.start.hidden = true; els.over.hidden = true; els.hud.hidden = false; els.mute.hidden = false;
       if (isTouch) els.fire.hidden = false;
       startLoop();      // resume the render loop even if the observer had paused it
