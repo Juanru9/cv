@@ -280,9 +280,11 @@
   }
   .game-stat b { color: var(--fg); font-weight: 700; margin-left: 6px; }
   .game-stage {
-    flex: 1; text-align: center; color: var(--accent); font-weight: 700;
-    letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; text-shadow: 0 0 12px var(--ring);
+    position: absolute; top: 40px; left: 50%; transform: translateX(-50%); z-index: 2;
+    max-width: 86%; text-align: center; color: var(--accent); white-space: nowrap;
+    letter-spacing: .08em; text-transform: uppercase; text-shadow: 0 0 12px var(--ring);
+    overflow: hidden; text-overflow: ellipsis; pointer-events: none;
+    font: 700 12.5px/1 'JetBrains Mono', monospace;
   }
   .game-lives { display: inline-flex; gap: 5px; margin-left: 10px; vertical-align: middle; }
   .game-lives span { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--ring); }
@@ -609,9 +611,9 @@
 
         <div class="game-hud" id="game-hud" hidden>
           <div class="game-stat">SCORE <b id="game-score">0</b><span class="game-lives" id="game-lives" aria-label="Lives"></span></div>
-          <div class="game-stage" id="game-stage"></div>
           <div class="game-stat">BEST <b id="game-best">0</b></div>
         </div>
+        <div class="game-stage" id="game-stage"></div>
 
         <button class="game-fs" id="game-fs" type="button" aria-label="Toggle fullscreen">⛶</button>
         <button class="game-mute" id="game-mute" type="button" aria-label="Toggle sound" hidden>🔊</button>
